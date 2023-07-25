@@ -10,7 +10,7 @@ interface PostRepository {
     fun saveAsync(post: Post, callback: RepositoryCallback<Post>)
     fun removeByIdAsync(id: Long, callback: RepositoryCallback<Unit>)
 
-    interface RepositoryCallback<T>{
+    interface RepositoryCallback<T> {
         fun onSuccess(value: T)
         fun onError()
     }

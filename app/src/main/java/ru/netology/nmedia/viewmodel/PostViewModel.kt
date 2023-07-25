@@ -85,13 +85,13 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
                 _data.postValue(FeedModel(posts = _data.value?.posts.orEmpty().map {
                     if (it.id == post.id) value else it
                 }))
-                loadPosts()
             }
 
             override fun onError() {
                 _data.postValue(FeedModel(error = true))
             }
         })
+
     }
 
     fun removeById(id: Long) {
