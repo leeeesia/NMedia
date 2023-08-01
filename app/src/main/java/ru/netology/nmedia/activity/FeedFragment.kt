@@ -35,6 +35,9 @@ class FeedFragment : Fragment() {
             override fun onLike(post: Post) {
                 viewModel.likeById(post)
             }
+            override fun onDislike(post: Post) {
+                viewModel.unlikeById(post)
+            }
 
             override fun onRemove(post: Post) {
                 viewModel.removeById(post.id)
@@ -57,6 +60,7 @@ class FeedFragment : Fragment() {
             }
         })
         binding.list.adapter = adapter
+
         binding.swiperefresh.setOnRefreshListener {
             viewModel.loadPosts()
             binding.swiperefresh.isRefreshing = false

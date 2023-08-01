@@ -59,6 +59,7 @@ class FCMService : FirebaseMessagingService() {
                     content.postAuthor,
                 )
             )
+            .setContentText(getString(R.string.error_loading))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .build()
 

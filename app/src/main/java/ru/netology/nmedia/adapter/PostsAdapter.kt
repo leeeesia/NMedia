@@ -14,6 +14,7 @@ import ru.netology.nmedia.dto.Post
 
 interface OnInteractionListener {
     fun onLike(post: Post) {}
+    fun onDislike(post: Post) {}
     fun onEdit(post: Post) {}
     fun onRemove(post: Post) {}
     fun onShare(post: Post) {}
@@ -89,7 +90,11 @@ class PostViewHolder(
             }
 
             like.setOnClickListener {
-                onInteractionListener.onLike(post)
+                like.isCheckable = !like.isCheckable
+                if ( !like.isCheckable){
+                    onInteractionListener.onLike(post)
+                } else onInteractionListener.onDislike(post)
+
             }
 
             share.setOnClickListener {
