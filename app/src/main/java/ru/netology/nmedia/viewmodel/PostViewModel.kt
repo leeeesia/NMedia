@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.*
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.model.FeedModel
+import ru.netology.nmedia.model.FeedResponse
 import ru.netology.nmedia.repository.*
 import ru.netology.nmedia.repository.PostRepository.RepositoryCallback
 import ru.netology.nmedia.util.SingleLiveEvent
@@ -46,8 +47,12 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
                 _data.value = FeedModel(posts = posts, empty = posts.isEmpty())
             }
 
-            override fun onError(e: Exception) {
-                _data.value = FeedModel(error = true)
+            override fun onError(code: Int, message: String) {
+                _data.value = FeedModel(error = true, response = FeedResponse(code, message))
+            }
+
+            override fun onFailure(e: Exception) {
+                _data.postValue(FeedModel(error = true))
             }
 
         })
@@ -60,8 +65,12 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
                     _postCreated.value = Unit
                 }
 
-                override fun onError(e: Exception) {
-                    _data.value = FeedModel(error = true)
+                override fun onError(code: Int, message: String) {
+                    _data.value = FeedModel(error = true, response = FeedResponse(code, message))
+                }
+
+                override fun onFailure(e: Exception) {
+                    _data.postValue(FeedModel(error = true))
                 }
 
 
@@ -83,6 +92,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun likeById(post: Post) {
+        val old = _data.value?.posts.orEmpty()
         !post.likedByMe
         repository.likeByIdAsync(post, object : PostRepository.RepositoryCallback<Post> {
             override fun onSuccess(value: Post) {
@@ -91,14 +101,19 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
                 })
             }
 
-            override fun onError(e: Exception) {
-                _data.value = FeedModel(error = true)
+            override fun onError(code: Int, message: String) {
+                _data.value = FeedModel(posts = old, error = true, response = FeedResponse(code, message))
+            }
+
+            override fun onFailure(e: Exception) {
+                _data.postValue(FeedModel(posts = old, error = true))
             }
         })
 
     }
 
     fun unlikeById(post: Post) {
+        val old = _data.value?.posts.orEmpty()
         repository.unlikeByIdAsync(post, object : PostRepository.RepositoryCallback<Post> {
             override fun onSuccess(value: Post) {
                 _data.value = FeedModel(posts = _data.value?.posts.orEmpty().map {
@@ -106,8 +121,12 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
                 })
             }
 
-            override fun onError(e: Exception) {
-                _data.value = FeedModel(error = true)
+            override fun onError(code: Int, message: String) {
+                _data.value = FeedModel(posts = old,error = true, response = FeedResponse(code, message))
+            }
+
+            override fun onFailure(e: Exception) {
+                _data.postValue(FeedModel(posts = old, error = true))
             }
         })
 
@@ -126,8 +145,12 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
             }
 
-            override fun onError(e: Exception) {
+            override fun onError(code: Int, message: String) {
                 _data.value = _data.value?.copy(posts = old)
+            }
+
+            override fun onFailure(e: Exception) {
+                _data.postValue(FeedModel(posts = old, error = true))
             }
 
         })

@@ -90,10 +90,7 @@ class PostViewHolder(
             }
 
             like.setOnClickListener {
-                like.isCheckable = !like.isCheckable
-                if ( !like.isCheckable){
-                    onInteractionListener.onLike(post)
-                } else onInteractionListener.onDislike(post)
+                onInteractionListener.onLike(post)
 
             }
 

@@ -9,7 +9,10 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.snackbar.BaseTransientBottomBar
+import com.google.android.material.snackbar.Snackbar
 import ru.netology.nmedia.R
+import ru.netology.nmedia.activity.NewPostFragment.Companion.textArg
 import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostsAdapter
 import ru.netology.nmedia.databinding.FragmentFeedBinding
@@ -29,14 +32,16 @@ class FeedFragment : Fragment() {
 
         val adapter = PostsAdapter(object : OnInteractionListener {
             override fun onEdit(post: Post) {
+                findNavController().navigate(R.id.action_feedFragment_to_newPostFragment,Bundle().apply {
+                    textArg = post.content
+                })
                 viewModel.edit(post)
             }
 
             override fun onLike(post: Post) {
-                viewModel.likeById(post)
-            }
-            override fun onDislike(post: Post) {
-                viewModel.unlikeById(post)
+                if (!post.likedByMe){
+                    viewModel.likeById(post)
+                } else viewModel.unlikeById(post)
             }
 
             override fun onRemove(post: Post) {
@@ -70,6 +75,23 @@ class FeedFragment : Fragment() {
             binding.progress.isVisible = state.loading
             binding.errorGroup.isVisible = state.error
             binding.emptyText.isVisible = state.empty
+
+            if (state.response.code != 0) {
+                Snackbar
+                    .make(
+                        requireView(),
+                        getString(
+                            R.string.error_response,
+                            state.response.message.toString(),
+                            state.response.code
+                        ),
+                        BaseTransientBottomBar.LENGTH_INDEFINITE
+                    )
+                    .setAction(android.R.string.ok) {
+                        return@setAction
+                    }
+                    .show()
+            }
         }
 
         binding.retryButton.setOnClickListener {

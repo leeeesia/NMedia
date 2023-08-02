@@ -1,16 +1,11 @@
 package ru.netology.nmedia.repository
 
 
-import android.content.Context
-import android.widget.Toast
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.Response
 import retrofit2.Call
 import retrofit2.Callback
 import ru.netology.nmedia.api.PostApi
 import ru.netology.nmedia.dto.Post
-import java.io.IOException
+
 
 
 class PostRepositoryImpl : PostRepository {
@@ -25,20 +20,20 @@ class PostRepositoryImpl : PostRepository {
                     response: retrofit2.Response<List<Post>>,
                 ) {
                     if (!response.isSuccessful) {
-                        callback.onError(RuntimeException(response.errorBody()?.string()))
+                        callback.onError(response.code(), response.message())
                         return
                     }
 
                     val posts = response.body()
                     if (posts == null) {
-                        callback.onError(RuntimeException("Body is empty"))
+                        callback.onFailure(RuntimeException("Body is empty"))
                         return
                     }
                     callback.onSuccess(posts)
                 }
 
                 override fun onFailure(call: Call<List<Post>>, t: Throwable) {
-                    callback.onError(Exception(t))
+                    callback.onFailure(Exception(t))
                 }
 
             })
@@ -50,20 +45,20 @@ class PostRepositoryImpl : PostRepository {
             .enqueue(object : Callback<Post> {
                 override fun onResponse(call: Call<Post>, response: retrofit2.Response<Post>) {
                     if (!response.isSuccessful) {
-                        callback.onError(RuntimeException(response.errorBody()?.string()))
+                        callback.onError(response.code(), response.message())
                         return
                     }
 
                     val post = response.body()
                     if (post == null) {
-                        callback.onError(RuntimeException("Body is empty"))
+                        callback.onFailure(RuntimeException("Body is empty"))
                         return
                     }
                     callback.onSuccess(post)
                 }
 
                 override fun onFailure(call: Call<Post>, t: Throwable) {
-                    callback.onError(Exception(t))
+                    callback.onFailure(Exception(t))
                 }
 
             })
@@ -77,20 +72,20 @@ class PostRepositoryImpl : PostRepository {
             .enqueue(object : Callback<Post> {
                 override fun onResponse(call: Call<Post>, response: retrofit2.Response<Post>) {
                     if (!response.isSuccessful) {
-                        callback.onError(RuntimeException(response.errorBody()?.string()))
+                        callback.onError(response.code(), response.message())
                         return
                     }
 
                     val post = response.body()
                     if (post == null) {
-                        callback.onError(RuntimeException("Body is empty"))
+                        callback.onFailure(RuntimeException("Body is empty"))
                         return
                     }
                     callback.onSuccess(post)
                 }
 
                 override fun onFailure(call: Call<Post>, t: Throwable) {
-                    callback.onError(Exception(t))
+                    callback.onFailure(Exception(t))
                 }
 
             })
@@ -105,20 +100,20 @@ class PostRepositoryImpl : PostRepository {
             .enqueue(object : Callback<Post> {
                 override fun onResponse(call: Call<Post>, response: retrofit2.Response<Post>) {
                     if (!response.isSuccessful) {
-                        callback.onError(RuntimeException(response.errorBody()?.string()))
+                        callback.onError(response.code(), response.message())
                         return
                     }
 
                     val post = response.body()
                     if (post == null) {
-                        callback.onError(RuntimeException("Body is empty"))
+                        callback.onFailure(RuntimeException("Body is empty"))
                         return
                     }
                     callback.onSuccess(post)
                 }
 
                 override fun onFailure(call: Call<Post>, t: Throwable) {
-                    callback.onError(Exception(t))
+                    callback.onFailure(Exception(t))
                 }
 
             })
@@ -135,7 +130,7 @@ class PostRepositoryImpl : PostRepository {
                 }
 
                 override fun onFailure(call: Call<Unit>, t: Throwable) {
-                    callback.onError(Exception(t))
+                    callback.onFailure(Exception(t))
                 }
 
 
