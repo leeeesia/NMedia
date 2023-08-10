@@ -17,6 +17,7 @@ import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostsAdapter
 import ru.netology.nmedia.databinding.FragmentFeedBinding
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.model.FeedModelState
 import ru.netology.nmedia.viewmodel.PostViewModel
 
 class FeedFragment : Fragment() {
@@ -67,31 +68,36 @@ class FeedFragment : Fragment() {
         binding.list.adapter = adapter
 
         binding.swiperefresh.setOnRefreshListener {
-            viewModel.loadPosts()
-            binding.swiperefresh.isRefreshing = false
+            viewModel.refresh()
         }
-        viewModel.data.observe(viewLifecycleOwner) { state ->
-            adapter.submitList(state.posts)
+        viewModel.state.observe(viewLifecycleOwner) { state ->
             binding.progress.isVisible = state.loading
             binding.errorGroup.isVisible = state.error
-            binding.emptyText.isVisible = state.empty
+            binding.swiperefresh.isRefreshing = false
+            binding.retryButton.isVisible = !binding.list.isVisible
 
-            if (state.response.code != 0) {
-                Snackbar
-                    .make(
-                        requireView(),
-                        getString(
-                            R.string.error_response,
-                            state.response.message.toString(),
-                            state.response.code
-                        ),
-                        BaseTransientBottomBar.LENGTH_INDEFINITE
+            if (state.error) {
+                val message = if (state.response.code == 0) {
+                    getString(R.string.error_loading)
+                } else {
+                    getString(
+                        R.string.error_response,
+                        state.response.message.toString(),
+                        state.response.code
                     )
-                    .setAction(android.R.string.ok) {
-                        return@setAction
-                    }
-                    .show()
+                }
+                Snackbar.make(
+                    binding.root,
+                    message,
+                    Snackbar.LENGTH_LONG
+                ).setAction(android.R.string.ok) {
+                    return@setAction
+                }.show()
             }
+        }
+        viewModel.date.observe(viewLifecycleOwner){
+            binding.emptyText.isVisible = it.empty
+            adapter.submitList(it.posts)
         }
 
         binding.retryButton.setOnClickListener {

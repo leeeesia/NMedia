@@ -1,139 +1,68 @@
 package ru.netology.nmedia.repository
 
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.map
 import retrofit2.Call
 import retrofit2.Callback
 import ru.netology.nmedia.api.PostApi
+import ru.netology.nmedia.dao.PostDao
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.entity.PostEntity
+import ru.netology.nmedia.util.ApiError
 
 
-
-class PostRepositoryImpl : PostRepository {
-
-
-    override fun getAllAsync(callback: PostRepository.RepositoryCallback<List<Post>>) {
-        PostApi.service
-            .getPosts()
-            .enqueue(object : Callback<List<Post>> {
-                override fun onResponse(
-                    call: Call<List<Post>>,
-                    response: retrofit2.Response<List<Post>>,
-                ) {
-                    if (!response.isSuccessful) {
-                        callback.onError(response.code(), response.message())
-                        return
-                    }
-
-                    val posts = response.body()
-                    if (posts == null) {
-                        callback.onFailure(RuntimeException("Body is empty"))
-                        return
-                    }
-                    callback.onSuccess(posts)
-                }
-
-                override fun onFailure(call: Call<List<Post>>, t: Throwable) {
-                    callback.onFailure(Exception(t))
-                }
-
-            })
+class PostRepositoryImpl(
+    private val dao: PostDao,
+) : PostRepository {
+    override val data: LiveData<List<Post>> = dao.getAll().map {
+        it.map(PostEntity::toDto)
     }
 
-    override fun likeByIdAsync(post: Post, callback: PostRepository.RepositoryCallback<Post>) {
-        val id = post.id
-        PostApi.service.likeById(id)
-            .enqueue(object : Callback<Post> {
-                override fun onResponse(call: Call<Post>, response: retrofit2.Response<Post>) {
-                    if (!response.isSuccessful) {
-                        callback.onError(response.code(), response.message())
-                        return
-                    }
+    override suspend fun getAll() {
+        val response = PostApi.service.getPosts()
+        if (!response.isSuccessful) {
+            throw ApiError(response.code(), response.message())
+        }
 
-                    val post = response.body()
-                    if (post == null) {
-                        callback.onFailure(RuntimeException("Body is empty"))
-                        return
-                    }
-                    callback.onSuccess(post)
-                }
+        val posts = response.body() ?: throw RuntimeException("Body is empty")
 
-                override fun onFailure(call: Call<Post>, t: Throwable) {
-                    callback.onFailure(Exception(t))
-                }
-
-            })
-
-
+        dao.insert(posts.map(PostEntity::fromDto) )
     }
 
-    override fun unlikeByIdAsync(post: Post, callback: PostRepository.RepositoryCallback<Post>) {
-        val id = post.id
-        PostApi.service.unlikeById(id)
-            .enqueue(object : Callback<Post> {
-                override fun onResponse(call: Call<Post>, response: retrofit2.Response<Post>) {
-                    if (!response.isSuccessful) {
-                        callback.onError(response.code(), response.message())
-                        return
-                    }
-
-                    val post = response.body()
-                    if (post == null) {
-                        callback.onFailure(RuntimeException("Body is empty"))
-                        return
-                    }
-                    callback.onSuccess(post)
-                }
-
-                override fun onFailure(call: Call<Post>, t: Throwable) {
-                    callback.onFailure(Exception(t))
-                }
-
-            })
-
-
+    override suspend fun likeById(post: Post) {
+        val response = PostApi.service.likeById(post.id)
+        if (!response.isSuccessful) {
+            throw ApiError(response.code(), response.message())
+        }
+        val posts = response.body() ?: throw RuntimeException("Body is empty")
+        dao.likeById(posts.id)
     }
 
-    override fun saveAsync(post: Post, callback: PostRepository.RepositoryCallback<Post>) {
-
-        PostApi.service
-            .savePosts(post)
-            .enqueue(object : Callback<Post> {
-                override fun onResponse(call: Call<Post>, response: retrofit2.Response<Post>) {
-                    if (!response.isSuccessful) {
-                        callback.onError(response.code(), response.message())
-                        return
-                    }
-
-                    val post = response.body()
-                    if (post == null) {
-                        callback.onFailure(RuntimeException("Body is empty"))
-                        return
-                    }
-                    callback.onSuccess(post)
-                }
-
-                override fun onFailure(call: Call<Post>, t: Throwable) {
-                    callback.onFailure(Exception(t))
-                }
-
-            })
-
+    override suspend fun unlikeById(post: Post) {
+        val response = PostApi.service.unlikeById(post.id)
+        if (!response.isSuccessful) {
+            throw ApiError(response.code(), response.message())
+        }
+        val posts = response.body() ?: throw RuntimeException("Body is empty")
+        dao.likeById(posts.id)
     }
 
+    override suspend fun save(post: Post) {
+        val response = PostApi.service.savePosts(post)
+        if (!response.isSuccessful) {
+            throw ApiError(response.code(), response.message())
+        }
+        val posts = response.body() ?: throw RuntimeException("Body is empty")
+        dao.save(PostEntity.fromDto(posts))
+    }
 
-    override fun removeByIdAsync(id: Long, callback: PostRepository.RepositoryCallback<Unit>) {
-        PostApi.service
-            .deletePost(id)
-            .enqueue(object : Callback<Unit> {
-                override fun onResponse(call: Call<Unit>, response: retrofit2.Response<Unit>) {
-                    callback.onSuccess(Unit)
-                }
-
-                override fun onFailure(call: Call<Unit>, t: Throwable) {
-                    callback.onFailure(Exception(t))
-                }
-
-
-            })
+    override suspend fun removeById(id: Long) {
+        val response = PostApi.service.deletePost(id)
+        if (!response.isSuccessful) {
+            throw ApiError(response.code(), response.message())
+        }
+        val posts = response.body() ?: throw RuntimeException("Body is empty")
+        dao.removeById(id)
     }
 }
