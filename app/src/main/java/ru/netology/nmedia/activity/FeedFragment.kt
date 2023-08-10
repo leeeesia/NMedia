@@ -74,7 +74,6 @@ class FeedFragment : Fragment() {
             binding.progress.isVisible = state.loading
             binding.errorGroup.isVisible = state.error
             binding.swiperefresh.isRefreshing = false
-            binding.retryButton.isVisible = !binding.list.isVisible
 
             if (state.error) {
                 val message = if (state.response.code == 0) {

@@ -75,7 +75,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             edited.value?.let {
                 try {
                     repository.save(it)
-                    _postCreated.value = Unit
+                    _state.value = FeedModelState()
                 } catch (e: Exception) {
                     _state.value = FeedModelState(error = true)
                 }
@@ -100,9 +100,9 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     fun likeById(post: Post) {
         viewModelScope.launch {
             !post.likedByMe
-            repository.likeById(post)
             try {
-                _state.value = FeedModelState()
+                repository.likeById(post)
+                loadPosts()
             } catch (e: Exception) {
                 _state.value = FeedModelState(error = true)
             }
@@ -111,9 +111,9 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
     fun unlikeById(post: Post) {
         viewModelScope.launch {
-            repository.unlikeById(post)
             try{
-                _state.value = FeedModelState()
+                repository.unlikeById(post)
+                loadPosts()
             } catch (e: Exception) {
                 _state.value = FeedModelState(error = true)
             }
@@ -122,12 +122,9 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun removeById(id: Long) {
-        // Оптимистичная модель
         viewModelScope.launch {
-            repository.removeById(id)
             try {
-                _state.value =
-                    _state.value?.copy()
+                repository.removeById(id)
 
             } catch (e: Exception) {
                 _state.value = FeedModelState(error = true)
