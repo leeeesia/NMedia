@@ -39,8 +39,10 @@ class PostRepositoryImpl(
                 throw ApiError(response.code(), response.message())
             }
         } catch (e: IOException) {
+            dao.likeById(post.id)
             throw NetworkError
         } catch (e: Exception) {
+            dao.likeById(post.id)
             throw UnknownError
         }
     }
@@ -53,8 +55,10 @@ class PostRepositoryImpl(
                 throw ApiError(response.code(), response.message())
             }
         } catch (e: IOException) {
+            dao.likeById(post.id)
             throw NetworkError
         } catch (e: Exception) {
+            dao.likeById(post.id)
             throw UnknownError
         }
 

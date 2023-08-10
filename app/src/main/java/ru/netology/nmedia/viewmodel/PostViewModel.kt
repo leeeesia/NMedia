@@ -102,7 +102,6 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             !post.likedByMe
             try {
                 repository.likeById(post)
-                loadPosts()
             } catch (e: Exception) {
                 _state.value = FeedModelState(error = true)
             }
@@ -113,7 +112,6 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             try{
                 repository.unlikeById(post)
-                loadPosts()
             } catch (e: Exception) {
                 _state.value = FeedModelState(error = true)
             }
