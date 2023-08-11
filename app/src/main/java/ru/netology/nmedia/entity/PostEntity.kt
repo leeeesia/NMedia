@@ -16,10 +16,11 @@ data class PostEntity(
     val likedByMe: Boolean,
     val likes: Int = 0,
     val authorAvatar: String,
+    val hidden: Boolean = false,
     @Embedded
     var attachment: Attachment?,
 ) {
-    fun toDto() = Post(id, author, content, published, likedByMe, likes, authorAvatar, attachment)
+    fun toDto() = Post(id, author, content, published, likedByMe, likes, authorAvatar, hidden, attachment)
 
     companion object {
         fun fromDto(dto: Post) =
@@ -31,10 +32,14 @@ data class PostEntity(
                 dto.likedByMe,
                 dto.likes,
                 dto.authorAvatar,
-
+                dto.hidden,
                 dto.attachment
             )
 
     }
+}
+fun List<PostEntity>.toDto():List<Post> = map(PostEntity::toDto)
+fun List<Post>.toEntity(hidden: Boolean = false): List<PostEntity> = map(PostEntity::fromDto).map{
+    it.copy(hidden = hidden)
 }
 

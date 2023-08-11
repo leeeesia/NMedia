@@ -2,6 +2,8 @@ package ru.netology.nmedia.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.db.AppDb
 import ru.netology.nmedia.dto.Post
@@ -18,6 +20,7 @@ private val empty = Post(
     likes = 0,
     published = "",
     authorAvatar = "",
+    hidden = false,
     attachment = null
 )
 
@@ -32,17 +35,36 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         get() = _state
     val date: LiveData<FeedModel> = repository.data.map {
         FeedModel(posts = it, empty = it.isEmpty())
-    }
+    }.asLiveData(Dispatchers.Default)
     val edited = MutableLiveData(empty)
     private val _postCreated = SingleLiveEvent<Unit>()
     val postCreated: LiveData<Unit>
         get() = _postCreated
+    val newerCount: LiveData<Int> = date.switchMap {
+        val id = it.posts.firstOrNull()?.id ?: 0L
+
+        repository.getNewerCount(id).asLiveData(Dispatchers.Default)
+    }
 
     init {
         loadPosts()
     }
 
     fun loadPosts() {
+        // Начинаем загрузку
+        viewModelScope.launch {
+            _state.postValue(FeedModelState(loading = true))
+            try {
+                repository.getAll()
+                _state.postValue(FeedModelState())
+            } catch (e: Exception) {
+                _state.value = FeedModelState(error = true)
+            }
+        }
+
+    }
+
+    fun loadNewPosts() {
         // Начинаем загрузку
         viewModelScope.launch {
             _state.postValue(FeedModelState(loading = true))
@@ -110,7 +132,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
     fun unlikeById(post: Post) {
         viewModelScope.launch {
-            try{
+            try {
                 repository.unlikeById(post)
             } catch (e: Exception) {
                 _state.value = FeedModelState(error = true)

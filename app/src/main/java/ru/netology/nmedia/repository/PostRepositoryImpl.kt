@@ -3,22 +3,48 @@ package ru.netology.nmedia.repository
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.map
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.time.delay
 import ru.netology.nmedia.api.PostApi
 import ru.netology.nmedia.dao.PostDao
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.entity.PostEntity
+import ru.netology.nmedia.entity.toEntity
 import ru.netology.nmedia.util.ApiError
 import ru.netology.nmedia.util.NetworkError
 import ru.netology.nmedia.util.UnknownError
 import java.io.IOException
+import java.util.concurrent.CancellationException
 
 
 class PostRepositoryImpl(
     private val dao: PostDao,
 ) : PostRepository {
-    override val data: LiveData<List<Post>> = dao.getAll().map {
+    override val data: Flow<List<Post>> = dao.getAllVisible().map {
         it.map(PostEntity::toDto)
     }
+
+    override fun getNewerCount(id: Long): Flow<Int> = flow {
+        while (true) {
+            try {
+                kotlinx.coroutines.delay(10_000)
+                val response = PostApi.service.getNewer(id)
+
+                val posts = response.body().orEmpty()
+
+                dao.insert(posts.toEntity(true))
+
+                emit(posts.size)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
 
     override suspend fun getAll() {
         val response = PostApi.service.getPosts()
@@ -30,6 +56,11 @@ class PostRepositoryImpl(
 
         dao.insert(posts.map(PostEntity::fromDto))
     }
+
+    override suspend fun getNewPost() {
+        dao.getNewPost()
+    }
+
 
     override suspend fun likeById(post: Post) {
         try {
