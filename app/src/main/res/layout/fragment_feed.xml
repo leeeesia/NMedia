@@ -92,7 +92,7 @@
         android:contentDescription="@string/newer"
         android:text="@string/newer"
         android:visibility="gone"
-        app:icon="@drawable/arrow_downward_24"
+        app:icon="@drawable/arrow_upward_24"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -64,18 +64,8 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
     }
 
-    fun loadNewPosts() {
-        // Начинаем загрузку
-        viewModelScope.launch {
-            _state.postValue(FeedModelState(loading = true))
-            try {
-                repository.getAll()
-                _state.postValue(FeedModelState())
-            } catch (e: Exception) {
-                _state.value = FeedModelState(error = true)
-            }
-        }
-
+    suspend fun loadNewPosts() {
+        repository.getNewPost()
     }
 
     fun refresh() {
