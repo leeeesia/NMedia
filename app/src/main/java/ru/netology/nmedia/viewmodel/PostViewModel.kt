@@ -64,7 +64,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
     }
 
-    suspend fun loadNewPosts() {
+    fun loadNewPosts() {
         repository.getNewPost()
     }
 

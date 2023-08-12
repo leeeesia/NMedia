@@ -8,7 +8,7 @@ interface PostRepository {
     val data:Flow<List<Post>>
     fun getNewerCount(id: Long) : Flow<Int>
     suspend fun getAll()
-    suspend fun getNewPost()
+    fun getNewPost()
 
     suspend fun likeById(post: Post)
 

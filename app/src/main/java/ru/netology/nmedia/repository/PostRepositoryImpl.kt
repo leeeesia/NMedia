@@ -57,7 +57,7 @@ class PostRepositoryImpl(
         dao.insert(posts.map(PostEntity::fromDto))
     }
 
-    override suspend fun getNewPost() {
+    override fun getNewPost() {
         dao.getNewPost()
     }
 
