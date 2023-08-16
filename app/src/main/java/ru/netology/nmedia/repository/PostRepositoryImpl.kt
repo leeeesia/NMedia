@@ -1,20 +1,23 @@
 package ru.netology.nmedia.repository
 
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.map
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.time.delay
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import ru.netology.nmedia.api.PostApi
 import ru.netology.nmedia.dao.PostDao
+import ru.netology.nmedia.dto.Attachment
+import ru.netology.nmedia.dto.Media
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.entity.PostEntity
 import ru.netology.nmedia.entity.toEntity
+import ru.netology.nmedia.enumeration.AttachmentType
 import ru.netology.nmedia.util.ApiError
 import ru.netology.nmedia.util.NetworkError
 import ru.netology.nmedia.util.UnknownError
+import java.io.File
 import java.io.IOException
 import java.util.concurrent.CancellationException
 
@@ -34,7 +37,7 @@ class PostRepositoryImpl(
 
                 val posts = response.body().orEmpty()
 
-                dao.insert(posts.toEntity(true))
+                dao.insertShadow(posts.toEntity(true)) //здесь посты с совпадающим id в базе данных  не будут заменены
 
                 emit(posts.size)
             } catch (e: CancellationException) {
@@ -109,6 +112,46 @@ class PostRepositoryImpl(
         } catch (e: Exception) {
             throw UnknownError
         }
+    }
+
+    override suspend fun saveWithAttachment(post: Post, file: File) {
+        try {
+            val media = uploadMedia(file)
+
+            val response = PostApi.service.savePosts(
+                post.copy(
+                    attachment = Attachment(
+                        url = media.id,
+                        type = AttachmentType.IMAGE
+                    )
+                )
+            )
+
+            if (!response.isSuccessful) {
+                throw ApiError(response.code(), response.message())
+            }
+
+            val body = response.body() ?: throw ApiError(response.code(), response.message())
+
+            dao.insert(PostEntity.fromDto(body))
+        } catch (e: IOException) {
+            throw NetworkError
+        } catch (e: Exception) {
+            throw UnknownError
+        }
+    }
+
+    private suspend fun uploadMedia(file: File): Media {
+        val formData = MultipartBody.Part.createFormData(
+            "file", file.name, file.asRequestBody()
+        )
+
+        val response = PostApi.service.uploadMedia(formData)
+        if (!response.isSuccessful) {
+            throw ApiError(response.code(), response.message())
+        }
+
+        return response.body() ?: throw ApiError(response.code(), response.message())
     }
 
     override suspend fun removeById(id: Long) {

@@ -41,6 +41,14 @@ class FeedFragment : Fragment() {
                 viewModel.edit(post)
             }
 
+            override fun onViewImage(post: Post){
+                findNavController().navigate(
+                    R.id.action_feedFragment_to_imageFragment,
+                    Bundle().apply {
+                        textArg = post.attachment!!.url
+                    })
+            }
+
             override fun onLike(post: Post) {
                 if (!post.likedByMe){
                     viewModel.likeById(post)
@@ -72,6 +80,7 @@ class FeedFragment : Fragment() {
         binding.swiperefresh.setOnRefreshListener {
             viewModel.refresh()
         }
+
         viewModel.state.observe(viewLifecycleOwner) { state ->
             binding.progress.isVisible = state.loading
             binding.errorGroup.isVisible = state.error
@@ -109,6 +118,7 @@ class FeedFragment : Fragment() {
                 binding.fabNewer.show()
             }
         }
+
 
         binding.retryButton.setOnClickListener {
             viewModel.loadPosts()

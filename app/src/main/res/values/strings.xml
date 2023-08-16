@@ -22,4 +22,5 @@
     <string name="channel_remote_name">Server notifications</string>
     <string name="channel_remote_description">Notifications from remote server</string>
     <string name="newer">New posts (%1$d)</string>
+    <string name="clear">clear</string>
 </resources>
