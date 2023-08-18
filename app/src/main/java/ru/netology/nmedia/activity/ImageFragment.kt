@@ -32,9 +32,6 @@ import ru.netology.nmedia.viewmodel.PostViewModel
 
 class ImageFragment : Fragment() {
 
-
-    private val viewModel: PostViewModel by activityViewModels()
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,

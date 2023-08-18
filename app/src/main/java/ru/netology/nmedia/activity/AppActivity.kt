@@ -5,7 +5,10 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
 import com.google.android.gms.common.ConnectionResult
@@ -13,8 +16,11 @@ import com.google.android.gms.common.GoogleApiAvailability
 import com.google.firebase.messaging.FirebaseMessaging
 import ru.netology.nmedia.R
 import ru.netology.nmedia.activity.NewPostFragment.Companion.textArg
+import ru.netology.nmedia.auth.AppAuth
+import ru.netology.nmedia.viewmodel.AuthViewModel
 
 class AppActivity : AppCompatActivity(R.layout.activity_app) {
+    private val viewModel: AuthViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,8 +46,15 @@ class AppActivity : AppCompatActivity(R.layout.activity_app) {
                     }
                 )
         }
+        viewModel.data.observe(this) {
+            invalidateOptionsMenu()
+        }
 
         checkGoogleApiAvailability()
+
+        requestNotificationsPermission()
+
+
     }
 
     private fun requestNotificationsPermission() {
@@ -57,6 +70,8 @@ class AppActivity : AppCompatActivity(R.layout.activity_app) {
 
         requestPermissions(arrayOf(permission), 1)
     }
+
+
 
     private fun checkGoogleApiAvailability() {
         with(GoogleApiAvailability.getInstance()) {

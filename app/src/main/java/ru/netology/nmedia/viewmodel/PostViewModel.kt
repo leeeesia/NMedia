@@ -3,8 +3,10 @@ package ru.netology.nmedia.viewmodel
 import android.app.Application
 import androidx.lifecycle.*
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.db.AppDb
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.model.FeedModel
@@ -17,12 +19,14 @@ private val empty = Post(
     id = 0,
     content = "",
     author = "",
+    authorId = 0,
     likedByMe = false,
     likes = 0,
     published = "",
     authorAvatar = "",
     hidden = false,
-    attachment = null
+    attachment = null,
+    ownedByMe = false,
 )
 
 class PostViewModel(application: Application) : AndroidViewModel(application) {
@@ -34,14 +38,21 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     private val _state = MutableLiveData(FeedModelState())
     val state: LiveData<FeedModelState>
         get() = _state
-    val date: LiveData<FeedModel> = repository.data.map {
-        FeedModel(posts = it, empty = it.isEmpty())
+    val data: LiveData<FeedModel> = AppAuth.getInstance().state.flatMapLatest { token ->
+
+        repository.data
+            .map { posts ->
+                FeedModel(posts.map {
+                    it.copy(ownedByMe = it.authorId == token?.id)
+                }, posts.isEmpty())
+            }
     }.asLiveData(Dispatchers.Default)
+
     val edited = MutableLiveData(empty)
     private val _postCreated = SingleLiveEvent<Unit>()
     val postCreated: LiveData<Unit>
         get() = _postCreated
-    val newerCount: LiveData<Int> = date.switchMap {
+    val newerCount: LiveData<Int> = data.switchMap {
         val id = it.posts.firstOrNull()?.id ?: 0L
 
         repository.getNewerCount(id).asLiveData(Dispatchers.Default)

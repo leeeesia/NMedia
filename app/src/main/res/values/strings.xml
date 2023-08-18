@@ -23,4 +23,19 @@
     <string name="channel_remote_description">Notifications from remote server</string>
     <string name="newer">New posts (%1$d)</string>
     <string name="clear">clear</string>
+    <string name="logout">logout</string>
+    <string name="login">login</string>
+    <string name="registration">Registration</string>
+    <string name="auth_login">login</string>
+    <string name="auth_password">password</string>
+    <string name="signin">Sign in</string>
+    <string name="error">Error!</string>
+    <string name="need_login">You need to log in.</string>
+    <string name="ok">ОК</string>
+    <string name="get_out">Are you sure you want to get out?</string>
+    <string name="yes">Yes</string>
+    <string name="cansel">Cansel</string>
+    <string name="repeat_the_password">repeat the password</string>
+    <string name="name">name</string>
+    <string name="passwords_not_match">Passwords don\'t match</string>
 </resources>

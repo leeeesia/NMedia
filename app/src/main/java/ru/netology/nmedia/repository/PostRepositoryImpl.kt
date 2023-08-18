@@ -14,6 +14,7 @@ import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.entity.PostEntity
 import ru.netology.nmedia.entity.toEntity
 import ru.netology.nmedia.enumeration.AttachmentType
+import ru.netology.nmedia.model.AuthModel
 import ru.netology.nmedia.util.ApiError
 import ru.netology.nmedia.util.NetworkError
 import ru.netology.nmedia.util.UnknownError
@@ -167,4 +168,24 @@ class PostRepositoryImpl(
             throw UnknownError
         }
     }
+
+    override suspend fun signIn(login: String, password: String): AuthModel {
+        val response = PostApi.service.updateUser(login, password)
+        if (!response.isSuccessful) {
+            throw ApiError(response.code(), response.message())
+        }
+
+        return response.body() ?: throw ApiError(response.code(), response.message())
+    }
+
+    override suspend fun signUp(name: String, login: String, password: String): AuthModel {
+        val response = PostApi.service.registerUser(login, password, name)
+
+        if (!response.isSuccessful) {
+            throw ApiError(response.code(), response.message())
+        }
+        return response.body() ?: throw ApiError(response.code(), response.message())
+    }
+
+
 }

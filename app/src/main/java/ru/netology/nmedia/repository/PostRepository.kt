@@ -1,13 +1,13 @@
 package ru.netology.nmedia.repository
 
-import androidx.lifecycle.LiveData
 import kotlinx.coroutines.flow.Flow
 import ru.netology.nmedia.dto.Post
 import java.io.File
+import ru.netology.nmedia.model.AuthModel
 
 interface PostRepository {
-    val data:Flow<List<Post>>
-    fun getNewerCount(id: Long) : Flow<Int>
+    val data: Flow<List<Post>>
+    fun getNewerCount(id: Long): Flow<Int>
     suspend fun getAll()
     fun getNewPost()
 
@@ -15,8 +15,12 @@ interface PostRepository {
 
     suspend fun unlikeById(post: Post)
     suspend fun save(post: Post)
-    suspend fun saveWithAttachment(post: Post, file:File)
+    suspend fun saveWithAttachment(post: Post, file: File)
     suspend fun removeById(id: Long)
+
+    suspend fun signIn(login: String, password: String): AuthModel
+
+    suspend fun signUp(login: String, password: String, name: String): AuthModel
 
 
 }
