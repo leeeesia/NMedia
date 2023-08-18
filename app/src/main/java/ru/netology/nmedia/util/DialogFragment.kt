@@ -24,10 +24,10 @@ open class MyDialog : DialogFragment() {
                     .setMessage(getString(R.string.get_out))
                     .setPositiveButton(getString(R.string.yes)) { dialog, id ->
                         AppAuth.getInstance().clearAuth()
+                        findNavController().navigate(R.id.action_feedFragment_to_signInFragment)
                         dialog.cancel()
                     }
                     .setNegativeButton(getString(R.string.cansel)) { dialog, id ->
-                        findNavController().navigate(R.id.action_feedFragment_to_signInFragment)
                         dialog.cancel()
                     }
             }
