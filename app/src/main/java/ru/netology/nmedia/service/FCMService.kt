@@ -7,12 +7,14 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.google.gson.Gson
 import ru.netology.nmedia.R
+import ru.netology.nmedia.auth.AppAuth
 import kotlin.random.Random
 
 
@@ -37,16 +39,32 @@ class FCMService : FirebaseMessagingService() {
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
-
-        message.data[action]?.let {
-           when (Action.valueOf(it)) {
-              Action.LIKE -> handleLike(gson.fromJson(message.data[content], Like::class.java))
-           }
+        message.data[action].let {
+            if (it == null) {
+                val myId = AppAuth.getInstance().state.value?.id
+                val simpleNotification =
+                    gson.fromJson(message.data[content], SimpleNotification::class.java)
+                if (simpleNotification.recipientId == null
+                    || simpleNotification.recipientId == myId
+                ) {
+                    handleSimpleNotification(simpleNotification)
+                } else {
+                    AppAuth.getInstance().sendPushToken(AppAuth.getInstance().pushToken?.token)
+                }
+            } else {
+                when (Action.valueOf(it)) {
+                    Action.LIKE -> handleLike(
+                        gson.fromJson(message.data[content], Like::class.java)
+                    )
+                }
+            }
         }
+
     }
 
     override fun onNewToken(token: String) {
         println(token)
+        AppAuth.getInstance().sendPushToken()
     }
 
     private fun handleLike(content: Like) {
@@ -77,11 +95,33 @@ class FCMService : FirebaseMessagingService() {
                 .notify(Random.nextInt(100_000), notification)
         }
     }
+    private fun handleSimpleNotification(content: SimpleNotification) {
+        val notification = NotificationCompat.Builder(this, channelId)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(content.content)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .build()
+
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+
+        NotificationManagerCompat.from(this)
+            .notify(Random.nextInt(100_000), notification)
+    }
 }
 
 enum class Action {
     LIKE,
 }
+data class SimpleNotification(
+    val recipientId: Long?,
+    val content: String,
+)
 
 data class Like(
     val userId: Long,

@@ -20,6 +20,7 @@ import ru.netology.nmedia.BuildConfig
 import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.dto.Media
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.dto.PushToken
 import ru.netology.nmedia.model.AuthModel
 
 private const val BASE_URL = "http://10.0.2.2:9999/api/slow/"
@@ -75,6 +76,8 @@ interface PostApiService {
     @POST("posts/{id}/likes")
     suspend fun likeById(@Path("id") id: Long): Response<Post>
 
+    @POST("users/push-tokens")
+    suspend fun sendPushToken(@Body body: PushToken):Response<Media>
 
     @FormUrlEncoded
     @POST("users/authentication")
