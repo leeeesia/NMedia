@@ -11,11 +11,11 @@ import android.view.ViewGroup
 import androidx.core.view.MenuProvider
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
+import dagger.hilt.android.AndroidEntryPoint
 import ru.netology.nmedia.R
 import ru.netology.nmedia.activity.NewPostFragment.Companion.textArg
 import ru.netology.nmedia.adapter.OnInteractionListener
@@ -26,15 +26,22 @@ import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.util.MyDialog
 import ru.netology.nmedia.viewmodel.AuthViewModel
 import ru.netology.nmedia.viewmodel.PostViewModel
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class FeedFragment : Fragment() {
 
-    private val viewModel: PostViewModel by activityViewModels()
+    private val viewModel: PostViewModel by viewModels(
+        ownerProducer = ::requireParentFragment,
+
+    )
     private val authViewModel: AuthViewModel by viewModels()
+    @Inject
+    lateinit var appAuth: AppAuth
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
         val binding = FragmentFeedBinding.inflate(inflater, container, false)
         var currentAuthMenuProvider: MenuProvider? = null
@@ -55,15 +62,18 @@ class FeedFragment : Fragment() {
                             //AppAuth.getInstance().setAuth(5, "x-token")
                             true
                         }
+
                         R.id.signUp -> {
                             findNavController().navigate(R.id.action_feedFragment_to_signUpFragment)
                             //AppAuth.getInstance().setAuth(5, "x-token")
                             true
                         }
+
                         R.id.logout -> {
                             dialog.show(parentFragmentManager.beginTransaction(), "logout")
                             true
                         }
+
                         else -> false
                     }
                 }
@@ -74,13 +84,15 @@ class FeedFragment : Fragment() {
 
         val adapter = PostsAdapter(object : OnInteractionListener {
             override fun onEdit(post: Post) {
-                findNavController().navigate(R.id.action_feedFragment_to_newPostFragment,Bundle().apply {
-                    textArg = post.content
-                })
+                findNavController().navigate(
+                    R.id.action_feedFragment_to_newPostFragment,
+                    Bundle().apply {
+                        textArg = post.content
+                    })
                 viewModel.edit(post)
             }
 
-            override fun onViewImage(post: Post){
+            override fun onViewImage(post: Post) {
                 findNavController().navigate(
                     R.id.action_feedFragment_to_imageFragment,
                     Bundle().apply {
@@ -89,8 +101,8 @@ class FeedFragment : Fragment() {
             }
 
             override fun onLike(post: Post) {
-                if (AppAuth.getInstance().isUserValid()) {
-                    if (!post.likedByMe){
+                if (appAuth.isUserValid()) {
+                    if (!post.likedByMe) {
                         viewModel.likeById(post)
                     } else viewModel.unlikeById(post)
                 } else {
@@ -148,7 +160,7 @@ class FeedFragment : Fragment() {
                 }.show()
             }
         }
-        viewModel.data.observe(viewLifecycleOwner){
+        viewModel.data.observe(viewLifecycleOwner) {
             binding.emptyText.isVisible = it.empty
             adapter.submitList(it.posts)
         }
@@ -168,7 +180,7 @@ class FeedFragment : Fragment() {
         }
 
         binding.fab.setOnClickListener {
-            if (AppAuth.getInstance().isUserValid()) {
+            if (appAuth.isUserValid()) {
                 findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
             } else {
                 dialog.show(parentFragmentManager.beginTransaction(), "dialog")

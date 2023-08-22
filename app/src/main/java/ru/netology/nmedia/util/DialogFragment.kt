@@ -5,10 +5,15 @@ import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import androidx.navigation.fragment.findNavController
+import dagger.hilt.android.AndroidEntryPoint
 import ru.netology.nmedia.R
 import ru.netology.nmedia.auth.AppAuth
+import javax.inject.Inject
 
+@AndroidEntryPoint
 open class MyDialog : DialogFragment() {
+    @Inject
+    lateinit var appAuth: AppAuth
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
 
         return activity?.let {
@@ -23,7 +28,7 @@ open class MyDialog : DialogFragment() {
                 "logout" -> builder.setTitle(getString(R.string.logout))
                     .setMessage(getString(R.string.get_out))
                     .setPositiveButton(getString(R.string.yes)) { dialog, id ->
-                        AppAuth.getInstance().clearAuth()
+                        appAuth.clearAuth()
                         findNavController().navigate(R.id.action_feedFragment_to_signInFragment)
                         dialog.cancel()
                     }

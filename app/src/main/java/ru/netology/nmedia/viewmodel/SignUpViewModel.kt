@@ -1,23 +1,23 @@
 package ru.netology.nmedia.viewmodel
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.auth.AppAuth
-import ru.netology.nmedia.db.AppDb
 import ru.netology.nmedia.model.AuthModelState
 import ru.netology.nmedia.model.AuthResponse
 import ru.netology.nmedia.repository.PostRepository
-import ru.netology.nmedia.repository.PostRepositoryImpl
 import ru.netology.nmedia.util.ApiError
+import javax.inject.Inject
 
-class SignUpViewModel(application: Application): AndroidViewModel(application) {
+@HiltViewModel
+class SignUpViewModel @Inject constructor(
+    private val appAuth: AppAuth,
+    private val repository: PostRepository,
+): ViewModel() {
 
-    private val repository: PostRepository = PostRepositoryImpl(
-        AppDb.getInstance(application).postDao()
-    )
 
     private val _state = MutableLiveData(AuthModelState())
 
@@ -26,7 +26,7 @@ class SignUpViewModel(application: Application): AndroidViewModel(application) {
         viewModelScope.launch {
             try {
                 val response = repository.signUp(login, password, name)
-                response.token?.let { AppAuth.getInstance().setAuth(response.id,response.token) }
+                response.token?.let { appAuth.setAuth(response.id,response.token) }
                 _state.value = AuthModelState(isActing = true)
             }catch (e: Exception){
                 val resp = if (e is ApiError) AuthResponse(e.status, e.code) else AuthResponse()
