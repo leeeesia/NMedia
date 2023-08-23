@@ -9,11 +9,12 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.snackbar.Snackbar
+import dagger.hilt.android.AndroidEntryPoint
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.FragmentRegistrationBinding
 import ru.netology.nmedia.viewmodel.SignUpViewModel
 
-
+@AndroidEntryPoint
 class SignUpFragment : Fragment() {
     private val viewModel: SignUpViewModel by viewModels()
     override fun onCreateView(

@@ -195,6 +195,10 @@ class FeedFragment : Fragment() {
             }
         }
 
+        authViewModel.data.observe(viewLifecycleOwner) {
+            adapter.refresh()
+        }
+
 
         binding.retryButton.setOnClickListener {
             viewModel.loadPosts()
@@ -213,6 +217,7 @@ class FeedFragment : Fragment() {
             viewModel.loadNewPosts()
             binding.fabNewer.hide()
         }
+
         adapter.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
             override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
                 if (positionStart == 0) {

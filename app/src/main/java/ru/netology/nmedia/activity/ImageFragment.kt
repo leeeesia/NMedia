@@ -30,6 +30,7 @@ import ru.netology.nmedia.util.AndroidUtils
 import ru.netology.nmedia.util.StringArg
 import ru.netology.nmedia.viewmodel.PostViewModel
 
+
 class ImageFragment : Fragment() {
 
     override fun onCreateView(
