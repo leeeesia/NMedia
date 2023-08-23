@@ -49,8 +49,6 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.databinding:adapters:3.2.0-alpha11'
-    implementation 'androidx.databinding:databinding-adapters:7.1.2'
     def core_version = "1.9.0"
     def appcompat_version = "1.5.1"
     def constraintlayout_version = "2.1.4"
@@ -72,6 +70,7 @@ dependencies {
     def okhttplogging_version = "4.11.0"
     def coroutines_version = "1.7.2"
     def imagepicker_version = "2.1"
+    def paging_version = "3.2.0"
 
 
     implementation fileTree(dir: "libs", include: ["*.jar"])
@@ -104,6 +103,7 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-play-services:$coroutines_version"
     implementation "com.google.dagger:hilt-android:$hilt_version"
     kapt "com.google.dagger:hilt-compiler:$hilt_version"
+    implementation "androidx.paging:paging-runtime-ktx:$paging_version"
 
 
     testImplementation "junit:junit:$junit_version"

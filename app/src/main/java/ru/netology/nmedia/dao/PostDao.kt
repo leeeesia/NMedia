@@ -22,6 +22,9 @@ interface PostDao {
     @Query("SELECT COUNT(*) == 0 FROM PostEntity")
     suspend fun isEmpty():Boolean
 
+    @Query("SELECT MAX(id) FROM PostEntity")
+    suspend fun getLateId(): Long
+
     @Query("SELECT COUNT(*) FROM PostEntity WHERE hidden = 1")
     suspend fun newerCount():Int
 

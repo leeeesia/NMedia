@@ -13,11 +13,17 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import androidx.paging.LoadState
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import ru.netology.nmedia.R
 import ru.netology.nmedia.activity.NewPostFragment.Companion.textArg
 import ru.netology.nmedia.adapter.OnInteractionListener
@@ -38,6 +44,7 @@ class FeedFragment : Fragment() {
     private val authViewModel: AuthViewModel by viewModels()
     @Inject
     lateinit var appAuth: AppAuth
+    @OptIn(ExperimentalCoroutinesApi::class)
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -132,8 +139,15 @@ class FeedFragment : Fragment() {
         })
         binding.list.adapter = adapter
 
-        binding.swiperefresh.setOnRefreshListener {
-            viewModel.refresh()
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.CREATED) {
+                adapter.loadStateFlow.collectLatest {
+                    binding.swiperefresh.isRefreshing =
+                        it.refresh is LoadState.Loading
+                                || it.append is LoadState.Loading
+                                || it.prepend is LoadState.Loading
+                }
+            }
         }
 
         viewModel.state.observe(viewLifecycleOwner) { state ->
@@ -160,17 +174,24 @@ class FeedFragment : Fragment() {
                 }.show()
             }
         }
-        viewModel.data.observe(viewLifecycleOwner) {
-            binding.emptyText.isVisible = it.empty
-            adapter.submitList(it.posts)
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.CREATED) {
+                viewModel.data.collectLatest {
+                    adapter.submitData(it)
+                }
+            }
         }
 
-        viewModel.newerCount.observe(viewLifecycleOwner) {
-            if (it == 0) {
-                binding.fabNewer.hide()
-            } else {
-                binding.fabNewer.text = getString(R.string.newer, it)
-                binding.fabNewer.show()
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.CREATED) {
+                viewModel.newerCount.collectLatest {
+                    if (it == 0) {
+                        binding.fabNewer.hide()
+                    } else {
+                        binding.fabNewer.text = getString(R.string.newer, it)
+                        binding.fabNewer.show()
+                    }
+                }
             }
         }
 
