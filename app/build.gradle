@@ -49,6 +49,8 @@ android {
 }
 
 dependencies {
+    implementation 'androidx.databinding:adapters:3.2.0-alpha11'
+    implementation 'androidx.databinding:databinding-adapters:7.1.2'
     def core_version = "1.9.0"
     def appcompat_version = "1.5.1"
     def constraintlayout_version = "2.1.4"

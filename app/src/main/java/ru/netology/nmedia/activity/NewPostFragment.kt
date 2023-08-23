@@ -15,9 +15,11 @@ import androidx.core.view.MenuProvider
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.github.dhaval2404.imagepicker.ImagePicker
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.FragmentNewPostBinding
 import ru.netology.nmedia.model.PhotoModel
@@ -25,14 +27,14 @@ import ru.netology.nmedia.util.AndroidUtils
 import ru.netology.nmedia.util.StringArg
 import ru.netology.nmedia.viewmodel.PostViewModel
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class NewPostFragment : Fragment() {
 
     companion object {
         var Bundle.textArg: String? by StringArg
     }
-    private val viewModel: PostViewModel by viewModels(
-        ownerProducer = ::requireParentFragment,
-    )
+
+    private val viewModel: PostViewModel by activityViewModels()
     private val photoLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ){
