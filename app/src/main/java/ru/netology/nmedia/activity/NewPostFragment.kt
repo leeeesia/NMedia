@@ -17,16 +17,21 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.github.dhaval2404.imagepicker.ImagePicker
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.collectLatest
 import ru.netology.nmedia.R
+import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.databinding.FragmentNewPostBinding
 import ru.netology.nmedia.model.PhotoModel
 import ru.netology.nmedia.util.AndroidUtils
 import ru.netology.nmedia.util.StringArg
 import ru.netology.nmedia.viewmodel.PostViewModel
+import javax.inject.Inject
+
 @AndroidEntryPoint
 @OptIn(ExperimentalCoroutinesApi::class)
 class NewPostFragment : Fragment() {
@@ -36,6 +41,8 @@ class NewPostFragment : Fragment() {
     }
 
     private val viewModel: PostViewModel by activityViewModels()
+    @Inject
+    lateinit var appAuth: AppAuth
     private val photoLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ){
@@ -108,8 +115,11 @@ class NewPostFragment : Fragment() {
         }
 
         viewModel.postCreated.observe(viewLifecycleOwner) {
-            viewModel.loadPosts()
-            findNavController().navigateUp()
+            lifecycleScope.launchWhenCreated {
+                appAuth.state.collectLatest {
+                    it?.let { findNavController().navigateUp() }
+                }
+            }
         }
         return binding.root
     }

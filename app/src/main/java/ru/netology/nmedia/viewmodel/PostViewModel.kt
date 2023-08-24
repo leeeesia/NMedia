@@ -7,6 +7,7 @@ import androidx.lifecycle.asLiveData
 import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import androidx.paging.map
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -46,13 +47,15 @@ class PostViewModel @Inject constructor(
     appAuth: AppAuth,
 ) : ViewModel() {
 
-
+    private val cashed = repository
+        .data
+        .cachedIn(viewModelScope)
     private val _state = MutableLiveData(FeedModelState())
     val state: LiveData<FeedModelState>
         get() = _state
     val data: Flow<PagingData<Post>> = appAuth.state
         .flatMapLatest { token ->
-            repository.data
+            cashed
                 .map { posts ->
                     posts.map {
                         it.copy(ownedByMe = it.authorId == token?.id)

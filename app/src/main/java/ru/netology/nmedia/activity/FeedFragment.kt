@@ -121,9 +121,6 @@ class FeedFragment : Fragment() {
                 viewModel.removeById(post.id)
             }
 
-            override fun onRefresh() {
-                viewModel.loadPosts()
-            }
 
             override fun onShare(post: Post) {
                 val intent = Intent().apply {
@@ -148,6 +145,9 @@ class FeedFragment : Fragment() {
                                 || it.prepend is LoadState.Loading
                 }
             }
+        }
+        binding.swiperefresh.setOnRefreshListener {
+            adapter.refresh()
         }
 
         viewModel.state.observe(viewLifecycleOwner) { state ->
@@ -201,7 +201,7 @@ class FeedFragment : Fragment() {
 
 
         binding.retryButton.setOnClickListener {
-            viewModel.loadPosts()
+            adapter.refresh()
         }
 
         binding.fab.setOnClickListener {
