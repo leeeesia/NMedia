@@ -1,5 +1,7 @@
 package ru.netology.nmedia.viewmodel
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -7,7 +9,9 @@ import androidx.lifecycle.asLiveData
 import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
+import androidx.paging.TerminalSeparatorType
 import androidx.paging.cachedIn
+import androidx.paging.insertSeparators
 import androidx.paging.map
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -18,13 +22,18 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.auth.AppAuth
+import ru.netology.nmedia.dto.Ad
+import ru.netology.nmedia.dto.DateSeparator
+import ru.netology.nmedia.dto.FeedItem
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.model.FeedModelState
 import ru.netology.nmedia.model.PhotoModel
 import ru.netology.nmedia.repository.PostRepository
 import ru.netology.nmedia.util.SingleLiveEvent
+import java.time.LocalDateTime
 import javax.inject.Inject
+import kotlin.random.Random
 
 private val empty = Post(
     id = 0,
@@ -33,12 +42,41 @@ private val empty = Post(
     authorId = 0,
     likedByMe = false,
     likes = 0,
-    published = "",
     authorAvatar = "",
     hidden = false,
     attachment = null,
     ownedByMe = false,
+    published = LocalDateTime.now(),
 )
+
+
+private val today: LocalDateTime = LocalDateTime.now()
+
+
+private val yesterday: LocalDateTime = today.minusDays(1)
+
+private val weekAgo: LocalDateTime = today.minusDays(7)
+
+
+fun Post?.isToday(): Boolean {
+    if (this == null) return false
+
+    return published.year == today.year && published.dayOfYear == today.dayOfYear
+}
+
+
+fun Post?.isYesterday(): Boolean {
+    if (this == null) return false
+
+    return published.year == yesterday.year && published.dayOfYear == yesterday.dayOfYear
+}
+
+
+fun Post?.isWeekAgo(): Boolean {
+    if (this == null) return false
+
+    return published.year == weekAgo.year && published.dayOfYear < weekAgo.dayOfYear
+}
 
 @HiltViewModel
 @ExperimentalCoroutinesApi
@@ -47,20 +85,57 @@ class PostViewModel @Inject constructor(
     appAuth: AppAuth,
 ) : ViewModel() {
 
-    private val cashed = repository
+    private val cached: Flow<PagingData<FeedItem>> = repository
         .data
+        .map { pagingData ->
+            pagingData.insertSeparators(
+                terminalSeparatorType = TerminalSeparatorType.SOURCE_COMPLETE,
+                generator = { before, after ->
+
+                    when {
+                        before == null && after.isToday() -> {
+                            DateSeparator(DateSeparator.Type.TODAY)
+                        }
+
+                        (before == null && after.isYesterday()) || (before.isToday() && after.isYesterday()) -> {
+                            DateSeparator(DateSeparator.Type.YESTERDAY)
+                        }
+
+                        before.isYesterday() && after.isWeekAgo() -> {
+                            DateSeparator(DateSeparator.Type.WEEK_AGO)
+                        }
+
+                        else -> {
+                            DateSeparator(DateSeparator.Type.WEEK_AGO)
+                        }
+
+                    }
+
+                    if (before?.id?.rem(5) != 0L) null else
+                        Ad(
+                            Random.nextLong(),
+                            "https://netology.ru",
+                            "figma.jpg"
+                        )
+
+                }
+            )
+        }
         .cachedIn(viewModelScope)
     private val _state = MutableLiveData(FeedModelState())
     val state: LiveData<FeedModelState>
         get() = _state
-    val data: Flow<PagingData<Post>> = appAuth.state
+    val data: Flow<PagingData<FeedItem>> = appAuth.state
         .flatMapLatest { token ->
-            cashed
-                .map { posts ->
-                    posts.map {
+            cached.map { posts ->
+                posts.map {
+                    if (it is Post) {
                         it.copy(ownedByMe = it.authorId == token?.id)
+                    } else {
+                        it
                     }
                 }
+            }
         }.flowOn(Dispatchers.Default)
 
     val edited = MutableLiveData(empty)

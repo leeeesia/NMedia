@@ -5,6 +5,7 @@ import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
+import androidx.paging.insertSeparators
 import androidx.paging.map
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -15,7 +16,9 @@ import ru.netology.nmedia.api.PostApiService
 import ru.netology.nmedia.dao.PostDao
 import ru.netology.nmedia.dao.PostRemoteKeyDao
 import ru.netology.nmedia.db.AppDb
+import ru.netology.nmedia.dto.Ad
 import ru.netology.nmedia.dto.Attachment
+import ru.netology.nmedia.dto.FeedItem
 import ru.netology.nmedia.dto.Media
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.entity.PostEntity
@@ -29,6 +32,7 @@ import java.io.File
 import java.io.IOException
 import java.util.concurrent.CancellationException
 import javax.inject.Inject
+import kotlin.random.Random
 
 
 class PostRepositoryImpl @Inject constructor(
@@ -48,7 +52,17 @@ class PostRepositoryImpl @Inject constructor(
             appDb = appDb,
         )
     ).flow
-        .map { it.map (PostEntity::toDto) }
+        .map { pagingData ->
+            pagingData.map(PostEntity::toDto)
+            //it.map(PostEntity::toDto)
+            //    .insertSeparators { previous, _ ->
+            //        if (previous?.id?.rem(5) == 0L) {
+            //             Ad(Random.nextLong(),"figma.jpg" )
+            //        } else{
+            //        null
+            //    }
+            //    }
+        }
 
     override fun getNewerCount(): Flow<Int> = flow {
         while (true) {

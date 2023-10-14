@@ -1,5 +1,9 @@
 package ru.netology.nmedia.api
 
+import com.google.gson.GsonBuilder
+import com.google.gson.TypeAdapter
+import com.google.gson.stream.JsonReader
+import com.google.gson.stream.JsonWriter
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -11,12 +15,15 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.create
 import ru.netology.nmedia.BuildConfig
 import ru.netology.nmedia.auth.AppAuth
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
 class ApiModule {
-    companion object{
+    companion object {
         private const val BASE_URL = "http://10.0.2.2:9999/api/slow/"
 
     }
@@ -32,8 +39,8 @@ class ApiModule {
     @Singleton
     @Provides
     fun provideOkHttp(
-        logging:HttpLoggingInterceptor,
-        appAuth:  AppAuth
+        logging: HttpLoggingInterceptor,
+        appAuth: AppAuth,
     ): OkHttpClient = OkHttpClient.Builder()
         .addInterceptor(logging)
         .addInterceptor { chain ->
@@ -52,7 +59,25 @@ class ApiModule {
     fun provideRetrofit(
         okHttpClient: OkHttpClient,
     ): Retrofit = Retrofit.Builder()
-        .addConverterFactory(GsonConverterFactory.create())
+        .addConverterFactory(
+            GsonConverterFactory.create(
+                GsonBuilder()
+                    .registerTypeAdapter(
+                        LocalDateTime::class.java,
+                        object : TypeAdapter<LocalDateTime>() {
+                            override fun write(out: JsonWriter?, value: LocalDateTime) {
+                                value.atZone(ZoneId.systemDefault()).toInstant()
+                            }
+
+                            override fun read(reader: JsonReader): LocalDateTime =
+                                LocalDateTime.ofInstant(
+                                    Instant.ofEpochSecond(reader.nextLong()),
+                                    ZoneId.systemDefault(),
+                                )
+                        })
+                    .create()
+            )
+        )
         .baseUrl(BASE_URL)
         .client(okHttpClient)
         .build()
@@ -60,6 +85,6 @@ class ApiModule {
     @Singleton
     @Provides
     fun provideApiService(
-        retrofit: Retrofit
-    ) : PostApiService = retrofit.create()
+        retrofit: Retrofit,
+    ): PostApiService = retrofit.create()
 }

@@ -39,4 +39,8 @@
     <string name="repeat_the_password">повторите пароль</string>
     <string name="name">имя</string>
     <string name="passwords_not_match">Пароли не совпадают</string>
+    <string name="retry">Retry</string>
+    <string name="today">Сегодня</string>
+    <string name="yesterday">Вчера</string>
+    <string name="week_ago">Неделю назад</string>
 </resources>

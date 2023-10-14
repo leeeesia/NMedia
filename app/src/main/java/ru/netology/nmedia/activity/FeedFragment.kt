@@ -27,6 +27,7 @@ import kotlinx.coroutines.launch
 import ru.netology.nmedia.R
 import ru.netology.nmedia.activity.NewPostFragment.Companion.textArg
 import ru.netology.nmedia.adapter.OnInteractionListener
+import ru.netology.nmedia.adapter.PostLoadingStateAdapter
 import ru.netology.nmedia.adapter.PostsAdapter
 import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.databinding.FragmentFeedBinding
@@ -42,8 +43,10 @@ class FeedFragment : Fragment() {
     @OptIn(ExperimentalCoroutinesApi::class)
     private val viewModel: PostViewModel by activityViewModels()
     private val authViewModel: AuthViewModel by viewModels()
+
     @Inject
     lateinit var appAuth: AppAuth
+
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -134,15 +137,20 @@ class FeedFragment : Fragment() {
                 startActivity(shareIntent)
             }
         })
-        binding.list.adapter = adapter
+        binding.list.adapter = adapter.withLoadStateHeaderAndFooter(
+            header = PostLoadingStateAdapter {
+                adapter.retry()
+            },
+            footer = PostLoadingStateAdapter {
+                adapter.retry()
+            }
+        )
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.CREATED) {
                 adapter.loadStateFlow.collectLatest {
                     binding.swiperefresh.isRefreshing =
                         it.refresh is LoadState.Loading
-                                || it.append is LoadState.Loading
-                                || it.prepend is LoadState.Loading
                 }
             }
         }
